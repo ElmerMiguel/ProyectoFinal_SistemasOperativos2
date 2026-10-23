@@ -29,6 +29,7 @@ target/
 docs/
 
 MD/
+.github/
 
 *.md
 dependency-reduced-pom.xml
