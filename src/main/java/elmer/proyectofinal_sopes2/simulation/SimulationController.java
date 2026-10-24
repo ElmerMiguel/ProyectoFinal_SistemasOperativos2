@@ -97,6 +97,8 @@ public final class SimulationController {
     public OrderScheduler getScheduler() { return scheduler; }
     public InventoryManager getInventoryManager() { return inventoryManager; }
     public ResourceManager getResourceManager() { return resourceManager; }
+    public ReceptionBuffer getReceptionBuffer() { return receptionBuffer; }
+    public List<Product> getProducts() { return products; }
 
     private void runOrderWorker(OrderWorker worker) {
         try {
