@@ -124,6 +124,42 @@ public final class ResourceManager {
         notifyListeners(allocation, false);
     }
 
+    /** Permite adquirir una unidad aislada para demostraciones de espera circular. */
+    public ResourceAllocation acquireResource(Order order, ResourceType type, long timeoutMs)
+            throws InterruptedException {
+        Objects.requireNonNull(order, "El pedido no puede ser nulo");
+        Objects.requireNonNull(type, "El tipo no puede ser nulo");
+        if (timeoutMs < 0) {
+            throw new IllegalArgumentException("El timeout no puede ser negativo");
+        }
+        Semaphore semaphore = semaphores.get(type);
+        if (!semaphore.tryAcquire(timeoutMs, TimeUnit.MILLISECONDS)) {
+            return null;
+        }
+        try {
+            stateLock.lockInterruptibly();
+            try {
+                ResourceInstance instance = instances.get(type).stream()
+                        .filter(candidate -> !candidate.isInUse())
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalStateException("El estado del semaforo no coincide"));
+                instance.assignTo(order, System.currentTimeMillis());
+                ResourceAllocation allocation = new ResourceAllocation(order, Map.of(type, List.of(instance)));
+                notifyListeners(allocation, true);
+                return allocation;
+            } finally {
+                stateLock.unlock();
+            }
+        } catch (InterruptedException exception) {
+            semaphore.release();
+            Thread.currentThread().interrupt();
+            throw exception;
+        } catch (RuntimeException exception) {
+            semaphore.release();
+            throw exception;
+        }
+    }
+
     /**
      * @param type Tipo de recurso consultado.
      * @return Cantidad de permisos libres.
