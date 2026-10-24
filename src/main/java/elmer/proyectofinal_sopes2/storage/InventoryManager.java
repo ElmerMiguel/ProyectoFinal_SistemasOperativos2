@@ -65,6 +65,41 @@ public final class InventoryManager {
         }
     }
 
+    /** Reserva stock logico sin retirarlo aun de sus casillas fisicas. */
+    public void reserveStock(Product product, int units) {
+        Product registered = requireRegistered(product);
+        inventoryLock.lock();
+        try {
+            if (!registered.tryReserveStock(units)) {
+                throw new IllegalArgumentException("El stock global es insuficiente");
+            }
+        } finally {
+            inventoryLock.unlock();
+        }
+    }
+
+    /** Devuelve una reserva cuando un pedido no puede continuar. */
+    public void releaseReservedStock(Product product, int units) {
+        Product registered = requireRegistered(product);
+        inventoryLock.lock();
+        try {
+            registered.rollbackStock(units);
+        } finally {
+            inventoryLock.unlock();
+        }
+    }
+
+    /** Retira fisicamente unidades previamente reservadas sin descontarlas dos veces. */
+    public List<StorageAllocationEntry> dispatchReservedStock(Product product, int units) {
+        Product registered = requireRegistered(product);
+        inventoryLock.lock();
+        try {
+            return warehouse.deallocateUnits(registered, units);
+        } finally {
+            inventoryLock.unlock();
+        }
+    }
+
    
     public Product findProduct(String productId) {
         return catalog.get(productId);
