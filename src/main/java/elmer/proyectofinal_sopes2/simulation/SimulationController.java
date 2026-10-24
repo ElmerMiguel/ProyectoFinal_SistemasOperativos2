@@ -1,6 +1,7 @@
 package elmer.proyectofinal_sopes2.simulation;
 
 import elmer.proyectofinal_sopes2.concurrency.ResourceManager;
+import elmer.proyectofinal_sopes2.ipc.DefaultProductCatalog;
 import elmer.proyectofinal_sopes2.ipc.InventoryWorker;
 import elmer.proyectofinal_sopes2.ipc.ReceptionBuffer;
 import elmer.proyectofinal_sopes2.ipc.ReceptionWorker;
@@ -38,7 +39,7 @@ public final class SimulationController {
     private volatile boolean running;
 
     public SimulationController() {
-        products = DefaultProducts.create();
+        products = DefaultProductCatalog.create();
         products.forEach(inventoryManager::registerProduct);
         Client scannerClient = new Client("SYS", "Sistema", ServiceLevel.NIVEL_1_EXPRES);
         Order scannerOwner = new Order("SCANNER-OWNER", scannerClient,

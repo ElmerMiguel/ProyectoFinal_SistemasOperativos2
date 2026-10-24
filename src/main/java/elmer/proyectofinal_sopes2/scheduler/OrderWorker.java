@@ -53,6 +53,7 @@ public final class OrderWorker implements Runnable {
         long start = System.currentTimeMillis();
         order.setTiempoInicioAtencion(start);
         order.setEstado(OrderStatus.EN_PROCESO);
+        scheduler.registerActive(order);
         try {
             Thread.sleep(order.getTiempoTrabajoEstimadoMs());
             for (var item : order.getItems()) {
@@ -67,9 +68,11 @@ public final class OrderWorker implements Runnable {
             Thread.currentThread().interrupt();
             throw exception;
         } catch (RuntimeException exception) {
+            order.setEstado(OrderStatus.CANCELADO);
             releaseReservedStock(order);
             throw exception;
         } finally {
+            scheduler.unregisterActive(order);
             resourceManager.releaseResources(allocation);
         }
     }

@@ -42,4 +42,12 @@ public final class ReceptionBuffer {
     public int remainingCapacity() {
         return queue.remainingCapacity();
     }
+
+    public int getCapacity() {
+        return queue.size() + queue.remainingCapacity();
+    }
+
+    public java.util.List<StockArrivalBatch> getPendingBatches() {
+        return java.util.List.copyOf(queue);
+    }
 }

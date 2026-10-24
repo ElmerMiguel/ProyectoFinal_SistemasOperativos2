@@ -23,6 +23,7 @@ public final class OrderScheduler {
     private final Condition orderAvailable = lock.newCondition();
     private final List<Order> readyOrders = new ArrayList<>();
     private final List<Order> waitingForInventory = new ArrayList<>();
+    private final List<Order> activeOrders = new ArrayList<>();
     private SchedulingPolicy policy;
     private double agingFactor;
 
@@ -152,6 +153,35 @@ public final class OrderScheduler {
         lock.lock();
         try {
             return List.copyOf(waitingForInventory);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void registerActive(Order order) {
+        if (order == null) return;
+        lock.lock();
+        try {
+            activeOrders.add(order);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void unregisterActive(Order order) {
+        if (order == null) return;
+        lock.lock();
+        try {
+            activeOrders.remove(order);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public List<Order> getActiveOrders() {
+        lock.lock();
+        try {
+            return List.copyOf(activeOrders);
         } finally {
             lock.unlock();
         }
