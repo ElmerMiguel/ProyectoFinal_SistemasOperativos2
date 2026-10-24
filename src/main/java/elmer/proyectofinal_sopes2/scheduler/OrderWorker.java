@@ -14,13 +14,22 @@ public final class OrderWorker implements Runnable {
     private final OrderScheduler scheduler;
     private final ResourceManager resourceManager;
     private final InventoryManager inventoryManager;
+    private final elmer.proyectofinal_sopes2.simulation.SimulationClock clock;
     private final long resourceTimeoutMs;
 
     public OrderWorker(OrderScheduler scheduler, ResourceManager resourceManager,
                        InventoryManager inventoryManager, long resourceTimeoutMs) {
+        this(scheduler, resourceManager, inventoryManager, null, resourceTimeoutMs);
+    }
+
+    public OrderWorker(OrderScheduler scheduler, ResourceManager resourceManager,
+                       InventoryManager inventoryManager,
+                       elmer.proyectofinal_sopes2.simulation.SimulationClock clock,
+                       long resourceTimeoutMs) {
         this.scheduler = Objects.requireNonNull(scheduler, "El scheduler no puede ser nulo");
         this.resourceManager = Objects.requireNonNull(resourceManager, "El gestor no puede ser nulo");
         this.inventoryManager = Objects.requireNonNull(inventoryManager, "El inventario no puede ser nulo");
+        this.clock = clock;
         if (resourceTimeoutMs < 0) {
             throw new IllegalArgumentException("El timeout no puede ser negativo");
         }
@@ -50,16 +59,21 @@ public final class OrderWorker implements Runnable {
             scheduler.submitOrder(order);
             return false;
         }
-        long start = System.currentTimeMillis();
+        long start = (clock != null) ? clock.getVirtualTimeMillis() : System.currentTimeMillis();
         order.setTiempoInicioAtencion(start);
         order.setEstado(OrderStatus.EN_PROCESO);
         scheduler.registerActive(order);
         try {
-            Thread.sleep(order.getTiempoTrabajoEstimadoMs());
+            if (clock != null) {
+                clock.sleepVirtual(order.getTiempoTrabajoEstimadoMs());
+            } else {
+                Thread.sleep(order.getTiempoTrabajoEstimadoMs());
+            }
             for (var item : order.getItems()) {
                 inventoryManager.dispatchReservedStock(item.getProduct(), item.getCantidad());
             }
-            order.setTiempoFinalizacion(System.currentTimeMillis());
+            long end = (clock != null) ? clock.getVirtualTimeMillis() : System.currentTimeMillis();
+            order.setTiempoFinalizacion(end);
             order.setEstado(OrderStatus.COMPLETADO);
             return true;
         } catch (InterruptedException exception) {

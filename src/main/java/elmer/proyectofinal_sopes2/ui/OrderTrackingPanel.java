@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public final class OrderTrackingPanel extends JPanel {
 
     private final OrderScheduler scheduler;
+    private final elmer.proyectofinal_sopes2.simulation.SimulationClock clock;
 
     // Modelos de datos para las tablas
     private final DefaultTableModel activeModel;
@@ -42,8 +43,13 @@ public final class OrderTrackingPanel extends JPanel {
     private final JTabbedPane queueTabs;
 
     public OrderTrackingPanel(OrderScheduler scheduler) {
+        this(scheduler, null);
+    }
+
+    public OrderTrackingPanel(OrderScheduler scheduler, elmer.proyectofinal_sopes2.simulation.SimulationClock clock) {
         super(new BorderLayout(8, 8));
         this.scheduler = scheduler;
+        this.clock = clock;
         setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
         // 1. Tabla de Pedidos en Proceso Activo
@@ -95,7 +101,7 @@ public final class OrderTrackingPanel extends JPanel {
             return;
         }
 
-        long now = System.currentTimeMillis();
+        long now = (clock != null) ? clock.getVirtualTimeMillis() : System.currentTimeMillis();
 
         // 1. Pedidos Activos
         activeModel.setRowCount(0);

@@ -61,7 +61,7 @@ public final class SimulationController {
         startThread(inventoryWorker, "inventory-worker");
         startThread(orderGenerator, "order-generator");
         for (int i = 0; i < 2; i++) {
-            OrderWorker worker = new OrderWorker(scheduler, resourceManager, inventoryManager, 100);
+            OrderWorker worker = new OrderWorker(scheduler, resourceManager, inventoryManager, clock, 100);
             startThread(() -> runOrderWorker(worker), "order-worker-" + i);
         }
     }

@@ -145,7 +145,7 @@ public final class MainFrame extends JFrame {
 
     private JTabbedPane createTabs() {
         resourcePanel = new ResourceMonitorPanel(controller.getResourceManager());
-        orderPanel = new OrderTrackingPanel(controller.getScheduler());
+        orderPanel = new OrderTrackingPanel(controller.getScheduler(), controller.getClock());
         warehousePanel = new WarehouseVisualizerPanel(controller.getInventoryManager().getWarehouse());
         receptionPanel = new ReceptionPanel(controller.getReceptionBuffer(), controller.getInventoryManager());
         metricsPanel = new MetricsPanel(controller.getMetrics());
